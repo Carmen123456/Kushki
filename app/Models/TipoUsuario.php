@@ -11,7 +11,9 @@ class TipoUsuario extends Model
     //use HasFactory;
     protected $table ="tipousuario";
     protected $primaryKey="idTipoUsuario";
+    
     public $timestamps = false;
+   
 
 
    

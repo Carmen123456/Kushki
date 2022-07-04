@@ -7,28 +7,50 @@ use App\Models\Causa;
 use Illuminate\Http\Request;
 
 use App\Imports\ClienteImport;
+use App\Exports\ClienteExport;
+use App\Exports\ClienteInactivosExport;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 class ClienteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    public function __construct(){
+        $this->middleware('can:Editar comercios')->only('edit','update');
+        $this->middleware('can:Registrar comercios')->only('create', 'store');
+        $this->middleware('can:Eliminar comercios')->only('destroy');
+        $this->middleware('can:Inactivar comercios')->only('chat','tipoContacto','habilitar');
+        $this->middleware('can:Cargar comercios')->only('importar');
+        $this->middleware('can:Descargar comercios')->only('exportar','exportarInactivo');
+    }
     
     public function index()
     {
-        $datosCliente = Cliente::all( )->where('state','=',true);
+        $datosCliente=DB::select(' select Clientes.idCliente, Clientes.nombreRazon, Clientes.nombreConsola, Clientes.nombreZendesk, 
+        Clientes.categria, Clientes.taxId, Clientes.idComercio,Clientes.pais, Clientes.state, 
+        Clientes.nombreContacto, Clientes.emailContacto, Clientes.merchanturl, Clientes.tipoContacto, 
+        Clientes.personaContacto, Clientes.personaEmmail, Clientes.telefonoWeb, Clientes.emailWeb,
+        Clientes.chatWeb, Clientes.user_id, Clientes.created_at, Clientes.updated_at, users.name
+        from Clientes 
+   inner join users  on users.id = Clientes.user_id 
+   where clientes.state =true 
+   group by idCliente;
+');
 
         return view('Cliente.listar', compact('datosCliente'));
     }
     public function listarInactivos(){
 
-        $datosCliente=DB::select('
-        select * from Clientes left join Causa 
-          on  Clientes.idCliente=Causa.idClienteFK where clientes.state =false and Causa.idClienteFK is null');
-        return view('Cliente.listar', compact('datosCliente'));
+        $datosCliente=DB::select('select Clientes.idCliente, Clientes.nombreRazon, Clientes.nombreConsola, Clientes.nombreZendesk, 
+        Clientes.categria, Clientes.taxId, Clientes.idComercio,Clientes.pais, Clientes.state, 
+        Clientes.nombreContacto, Clientes.emailContacto, Clientes.merchanturl, Clientes.tipoContacto, 
+        Clientes.personaContacto, Clientes.personaEmmail, Clientes.telefonoWeb, Clientes.emailWeb,
+        Clientes.chatWeb, Clientes.user_id, Clientes.created_at, Clientes.updated_at, users.name,
+        Causa.idCausa , Causa.fecha , Causa.nombreAgente , Causa.ticket, Causa.motivo from Clientes left join Causa 
+        on  Clientes.idCliente=Causa.idClienteFK 
+        inner join users on users.id = Clientes.user_id 
+        where clientes.state =false 
+        and Causa.idClienteFK is null 
+        group by idCliente');
+        return view('Cliente.sinCausa', compact('datosCliente'));
                
             }
             public function small(){
@@ -100,14 +122,16 @@ class ClienteController extends Controller
         
     public function inactivo(){
 
-$datosCausa = Causa::all( );
+$datosCausa=DB::select('select * from Clientes left join Causa 
+on  Clientes.idCliente=Causa.idClienteFK where clientes.state =false and Causa.idClienteFK is not null');
+
 return view('Cliente.inactivos', compact('datosCausa'));
-       
+
     }
     public function causa($idCliente)
     { 
-        $datosCliente=Cliente::findOrFail($idCliente);
-        return view('Causa.create', compact('datosCliente'));
+        $Cliente=Cliente::findOrFail($idCliente);
+        return view('Causa.create', compact('Cliente'));
     }
   
     /**
@@ -140,7 +164,8 @@ return view('Cliente.inactivos', compact('datosCausa'));
         $datosCliente->nombreContacto = $request->input('nombreContacto');
         $datosCliente->emailContacto = $request->input('emailContacto');
         $datosCliente->merchanturl = $request->input('merchanturl');
-        $datosCliente->personaContacto = $request->input('personaContacto') ;
+        $datosCliente->personaContacto = $request->input('personaContacto');
+        $datosCliente->tipoContacto = $request->input('tipoContacto');
         $datosCliente->personaEmmail = $request->input('personaEmmail');
         $datosCliente->telefonoWeb = $request->input('telefonoWeb');
         $datosCliente->emailWeb = $request->input('emailWeb');
@@ -148,7 +173,7 @@ return view('Cliente.inactivos', compact('datosCausa'));
         $datosCliente->user_id = auth()->id();
 
         $datosCliente->save();
-        return redirect('Cliente');
+        return redirect('Cliente')->with('mensaje','Se creó correctamente');
     }
 
     /**
@@ -174,6 +199,7 @@ return view('Cliente.inactivos', compact('datosCausa'));
     public function edit($idCliente)
     {
         $datosCliente=Cliente::findOrFail($idCliente);
+
         return view('Cliente.editar', compact('datosCliente'));
     }
 
@@ -199,6 +225,7 @@ return view('Cliente.inactivos', compact('datosCausa'));
         $datosCliente->emailContacto = $request->input('emailContacto');
         $datosCliente->merchanturl = $request->input('merchanturl');
         $datosCliente->personaContacto = $request->input('personaContacto') ;
+        $datosCliente->tipoContacto = $request->input('tipoContacto');
         $datosCliente->personaEmmail = $request->input('personaEmmail');
         $datosCliente->telefonoWeb = $request->input('telefonoWeb');
         $datosCliente->emailWeb = $request->input('emailWeb');
@@ -206,7 +233,7 @@ return view('Cliente.inactivos', compact('datosCausa'));
         $datosCliente->user_id = auth()->id();
 
         $datosCliente->save();
-        return redirect('Cliente');
+        return redirect('Cliente')->with('mensaje','Se actualizó correctamente');;
     }
 
     /**
@@ -218,32 +245,23 @@ return view('Cliente.inactivos', compact('datosCausa'));
     public function destroy($idCliente)
     {
         Cliente::destroy($idCliente);
-        return redirect('Cliente');
+        return redirect('Cliente')->with('mensaje','Se eliminó correctamente');
     }
-    public function habilitar($idCliente)
+    public function habilitar(Request $request)
     {
         //seleccionar el cliente co id
-        $Cliente = Cliente::find($idCliente);
-        switch($Cliente->state){
+        $datosCliente = Cliente::find( $request->idCliente);
+        switch( $datosCliente->state){
                 case true:// pasar a estado deshabilitado
-                    $Cliente->state =false;
+                    $datosCliente->state =false;
                     break;
                     case false: //pasar a estado habilitado true
-                        $Cliente->state =true;
-                        break;
-      }            
-            $Cliente->save();
-            switch($Cliente->state){
-                case false:
-                    return redirect()->route('Cliente.Causa',$Cliente->idCliente);
-                    break;
-                    case true:
-                         return redirect('Cliente');
-
+                        $datosCliente->state =true;
                         break;
             }
-           
+$datosCliente->save();
         }
+
         public function chat($idCliente)
         {
             //seleccionar el cliente co id
@@ -258,7 +276,7 @@ return view('Cliente.inactivos', compact('datosCausa'));
                             break;
           }            
           $Cliente->save(); 
-          return redirect('Cliente');
+          return redirect('Cliente')->with('mensaje','Se actualizó el estado del chat web');
             }
             public function  tipoContacto($idCliente)
             {
@@ -278,7 +296,7 @@ return view('Cliente.inactivos', compact('datosCausa'));
                                 break;
               }            
               $Cliente->save(); 
-              return redirect('Cliente');
+              return redirect('Cliente')->with('mensaje','Se actualizó el tipo contacto');
                 }
 
                 public function importar(Request $request){
@@ -286,8 +304,17 @@ return view('Cliente.inactivos', compact('datosCausa'));
                     $file = $request->file('file');
                     
                     Excel::import(new ClienteImport,request()->file('file'));
-                    return back()->with('message','Importación de cliente completada');
+                    return back()->with('mensaje','Importación de cliente completada');
                    
                    
             }
+            public function exportar() 
+            {
+                return Excel::download(new ClienteExport, 'BD_Clientes_Activos.xlsx');
+            }
+            public function exportarInactivo() 
+            {
+                return Excel::download(new ClienteInactivosExport, 'BD_Clientes_Inactivos.xlsx');
+            }
+               
 }

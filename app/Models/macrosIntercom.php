@@ -9,7 +9,7 @@ class macrosIntercom extends Model
 {
     protected $table ="macrosIntercom";
     protected $primaryKey="idMacroIntercom";
-    public $timestamps = false;
+
 
     public function usuario()
 {

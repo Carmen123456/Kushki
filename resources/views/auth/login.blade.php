@@ -1,6 +1,5 @@
 @extends('layouts.app', [
     'class' => 'login-page',
-    'backgroundImagePath' => 'img/bg/fabio-mangione.jpg'
 ])
 
 @section('content')
@@ -16,15 +15,19 @@
                             </div>
                         </div>
                         <div class="card-body ">
-
+                            @if (session('error'))
+                                <p> {{ session('error') }}</p>
+                            @endif
                             <div class="input-group">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="nc-icon nc-single-02"></i>
                                     </span>
                                 </div>
-                                <input class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}" placeholder="{{ __('Email') }}" type="email" name="email" value="{{ old('email') }}" required autofocus>
-                                
+                                <input class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}"
+                                    placeholder="{{ __('Email') }}" type="email" name="email" value="{{ old('email') }}"
+                                    required autofocus>
+
                                 @if ($errors->has('email'))
                                     <span class="invalid-feedback" style="display: block;" role="alert">
                                         <strong>{{ $errors->first('email') }}</strong>
@@ -38,8 +41,9 @@
                                         <i class="nc-icon nc-single-02"></i>
                                     </span>
                                 </div>
-                                <input class="form-control{{ $errors->has('password') ? ' is-invalid' : '' }}" name="password" placeholder="{{ __('Password') }}" type="password" required>
-                                
+                                <input class="form-control{{ $errors->has('password') ? ' is-invalid' : '' }}"
+                                    name="password" placeholder="{{ __('Password') }}" type="password" required>
+
                                 @if ($errors->has('password'))
                                     <span class="invalid-feedback" style="display: block;" role="alert">
                                         <strong>{{ $errors->first('password') }}</strong>
@@ -49,8 +53,9 @@
 
                             <div class="form-group">
                                 <div class="form-check">
-                                     <label class="form-check-label">
-                                        <input class="form-check-input" name="remember" type="checkbox" value="" {{ old('remember') ? 'checked' : '' }}>
+                                    <label class="form-check-label">
+                                        <input class="form-check-input" name="remember" type="checkbox" value=""
+                                            {{ old('remember') ? 'checked' : '' }}>
                                         <span class="form-check-sign"></span>
                                         {{ __('Remember me') }}
                                     </label>
@@ -60,16 +65,16 @@
 
                         <div class="card-footer">
                             <div class="text-center">
-                                <button type="submit" class="btn btn-warning btn-round mb-3">{{ __('Sign in') }}</button>
+                                <button type="submit" class="btn btn-warning btn-round mb-3">{{ __('Ingresar') }}</button>
                             </div>
                         </div>
                     </div>
                 </form>
-                <a href="{{ route('password.request') }}" class="btn btn-link">
-                    {{ __('Forgot password') }}
+                <a href="{{ route('password.request') }}" class="btn  btn-link" style="background-color: white">
+                    {{ __('Recuperar contraseña') }}
                 </a>
-                <a href="{{ route('register') }}" class="btn btn-link float-right">
-                    {{ __('Create Account') }}
+                <a href="{{ route('register') }}" class="btn btn-link float-right" style="background-color: white">
+                    {{ __('Crear cuenta') }}
                 </a>
             </div>
         </div>

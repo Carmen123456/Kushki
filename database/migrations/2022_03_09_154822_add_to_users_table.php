@@ -14,11 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::table(table:'users', callback: function (Blueprint $table) {
-
-
+            $table->timestamps();
             $table->boolean('estadoUsuario')->default(true);
-            $table->bigInteger('idTipoUsuarioFK')->nullable()->default(1);
-            $table->foreign('idTipoUsuarioFK')->references('idTipoUsuario')->on('tipoUsuario');
         });
     }
 

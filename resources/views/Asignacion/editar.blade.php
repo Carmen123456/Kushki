@@ -1,12 +1,5 @@
-@extends('layouts.app', [
-    'class' => '',
-    'elementActive' => 'asignados'
-])
 
- 
-@section('content')
-<h4>Editar asignación </h4>
-<form action="{{url('/Asignacion/'. $datosAsignacion->idAsignacion)}}" method="post">
+<form id="miFormEdiar" action="{{url('/Asignacion/'. $datosAsignacion->idAsignacion)}}" method="post">
     @csrf
     {{method_field('PATCH')}}
 <div class="mt-4">
@@ -15,7 +8,7 @@
     <select name="usuarios" id="usuarios" class="form-control" >
       
         <option value="{{$datosAsignacion->user_id}}"  style="background: white; " readonly>
-            {{$datosAsignacion->usuario->name }}
+            {{$datosAsignacion->name }}
         </option>
 
     </select>
@@ -55,4 +48,3 @@
     <input type="submit" value="Guardar datos">
 </div>
 </form>
-@endsection

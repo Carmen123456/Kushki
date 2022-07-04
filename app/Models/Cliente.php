@@ -11,7 +11,6 @@ class Cliente extends Model
 {
     protected $table ="clientes";
     protected $primaryKey="idCliente";
-    public $timestamps = false;
     protected $fillable = ['nombreRazon','nombreConsola','nombreZendesk','categria', 'taxId','idComercio','pais','state','nombreContacto',
 'emailContacto','merchanturl','tipoContacto','personaContacto','personaEmmail','telefonoWeb','emailWeb','chatWeb','user_id'];
     
@@ -20,10 +19,6 @@ class Cliente extends Model
  *
  * @return \Illuminate\Database\Eloquent\Relations\HasOne
  */
-public function CausaInactividad()
-{
-    return $this->hasOne('App\Models\Causa', 'idClienteFK');
-}
 
 public function usuario()
 {

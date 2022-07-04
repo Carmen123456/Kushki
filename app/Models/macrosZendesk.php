@@ -8,8 +8,8 @@ use App\Models\User;
 class macrosZendesk extends Model
 {
     protected $table ="macrosZendesk";
-    protected $primaryKey="idmacroZendesk";
-    public $timestamps = false;
+    protected $primaryKey="idMacroZendesk";
+
 
     public function usuario()
 {

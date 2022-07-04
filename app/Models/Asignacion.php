@@ -9,7 +9,7 @@ class Asignacion extends Model
 {
     protected $table ="asignacion";
     protected $primaryKey="idAsignacion";
-    public $timestamps = false;
+
 
     public function usuario()
 {

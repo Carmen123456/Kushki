@@ -16,7 +16,7 @@ public function __construct(){
     public function model(array $row)
     {
         return new Causa([
-           'fecha' => ($row['fecha']== null)?'Sin Fecha': $row['fecha'],
+           'fecha' => ($row['fecha']== null)?'Sin fecha': $row['fecha'],
            'nombreAgente' => ($row['nombre_del_agente']== null)?'Sin agente': $row['nombre_del_agente'], 
            'ticket' => ($row['ticket']== null)?'Sin ticket': $row['ticket'],
            'motivo' => ($row['motivo']== null)?'Sin motivo': $row['motivo'],

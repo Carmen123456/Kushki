@@ -3,14 +3,20 @@
 namespace App\Http\Controllers;
 use App\Models\macrosIntercom;
 use Illuminate\Http\Request;
+use App\Exports\macrosIntercomExport;
+use App\Exports\macrosIntercomB2BExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MacrosIntercomController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    public function __construct(){
+        $this->middleware('can:Editar mis macros')->only('edit','update');
+        $this->middleware('can:Editar mis macros')->only('edit','update');
+        $this->middleware('can:Crear mis macros')->only('store, create');
+        $this->middleware('can:Eliminar mis macros')->only('destroy');
+      
+    }
+    
     public function index()
     {
         $datosIntercom = macrosIntercom::all()->where('grupo','=',true);
@@ -23,7 +29,7 @@ class MacrosIntercomController extends Controller
        
         $datosIntercom = macrosIntercom::where('user_id', auth()->id())->get();
        
-            return view('macros.intercom.listar',compact('datosIntercom'));
+            return view('macros.intercom.misMacros',compact('datosIntercom'));
         
     }   
     
@@ -59,7 +65,7 @@ class MacrosIntercomController extends Controller
         $datosIntercom->user_id = auth()->id();
 
         $datosIntercom->save();
-        return redirect('MacrosIntercom');
+        return redirect('MacrosIntercom/Mismacros');
     }
 
     /**
@@ -84,7 +90,7 @@ class MacrosIntercomController extends Controller
     public function edit($idMacroIntercom)
     {
         $datosIntercom=macrosIntercom::findOrFail($idMacroIntercom);
-        return view('macros.intercom.editar', compact('datosIntercom'));
+        return view('macros.intercom.misMacros', compact('datosIntercom'));
     }
 
     /**
@@ -96,14 +102,14 @@ class MacrosIntercomController extends Controller
      */
     public function update(Request $request,$idMacroIntercom)
     {
-        $datosIntercom = macrosIntercom::find($idMacroIntercom);;
+        $datosIntercom = macrosIntercom::find($idMacroIntercom);
         $datosIntercom->mensaje = $request->input('mensaje');
         $datosIntercom ->categoria = $request->input('categoria');
         $datosIntercom->grupo = $request->input('grupo');
         $datosIntercom->user_id = auth()->id();
 
         $datosIntercom->save();
-        return redirect('MacrosIntercom');
+        return redirect('MacrosIntercom/Mismacros');
     }
 
     /**
@@ -115,7 +121,7 @@ class MacrosIntercomController extends Controller
     public function destroy($idMacroIntercom)
     {
         macrosIntercom::destroy($idMacroIntercom);
-        return redirect('MacrosIntercom');
+        return redirect('MacrosIntercom/Mismacros');
     }
 
     public function cambiar($idMacroIntercom)
@@ -132,6 +138,15 @@ class MacrosIntercomController extends Controller
                         break;
       }            
       $Macros->save(); 
-      return redirect('MacrosIntercom');
+      return redirect('MacrosIntercom/Mismacros');
+        }
+
+        public function exportar() 
+        {
+            return Excel::download(new macrosIntercomExport, 'BD_Macros_intercom_B2C.xlsx');
+        }
+        public function exportarB2B() 
+        {
+            return Excel::download(new macrosIntercomB2BExport, 'BD_Macros_intercom_B2B.xlsx');
         }
 }

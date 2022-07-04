@@ -6,14 +6,15 @@ use App\Models\Causa;
 use App\Models\Cliente;
 use Controllers\ClienteController;
 use Illuminate\Http\Request;
+use App\Exports\CausaExport;
 use Maatwebsite\Excel\Facades\Excel;
 class CausaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    public function __construct(){
+        $this->middleware('can:Editar causas')->only('edit','update');
+        $this->middleware('can:Cargar causas')->only('importarCausa');
+    }
+
     public function index()
     {
         $datosCausa = Causa::all();
@@ -38,11 +39,39 @@ class CausaController extends Controller
      */
      public function store(Request $request)
         {
-            $datosCausa = request()->except('_token');
-            Causa::insert( $datosCausa );
-            return redirect()->route('Cliente.inactivos');
+            $datosCausa  = new Causa;
+            $datosCausa->fecha=$request->input('fecha');
+            $datosCausa->nombreAgente=$request->input('nombreAgente');
+            $datosCausa->ticket = $request->input('ticket');
+            $datosCausa->motivo  = $request->input('motivo');
+            $datosCausa->idClienteFK = $request->input('idClienteFK');
     
+    
+            $datosCausa->save();
+
+            switch($datosCausa->cliente->state){
+                case false:
+                    return redirect('Cliente/inactivo');
+                    break;
+                    case true:
+                        return redirect('Cliente');
+
+                        break;
+            }
         }
+       /*  public function store2(Request $request)
+        {
+            $datosCausa  = new Causa;
+            $datosCausa->fecha=$request->input('fecha');
+            $datosCausa->nombreAgente=$request->input('nombreAgente');
+            $datosCausa->ticket = $request->input('ticket');
+            $datosCausa->motivo  = $request->input('motivo');
+            $datosCausa->idClienteFK = $request->input('idClienteFK');
+    
+    
+            $datosCausa->save();
+            return redirect()->route('Cliente/inactivo');
+        } */
 
 
     /**
@@ -80,13 +109,15 @@ class CausaController extends Controller
      */
       public function update(Request $request,$idCausa)
     {
-        $datosCausa = request()->except(['_token','_method']);
-        Causa::where('idCausa','=',$idCausa)->
-        update($datosCausa);
+        $datosCausa  = Causa::find($idCausa);
+        $datosCausa->fecha=$request->input('fecha');
+        $datosCausa->nombreAgente=$request->input('nombreAgente');
+        $datosCausa->ticket = $request->input('ticket');
+        $datosCausa->motivo=$request->input('motivo');
+        
 
-        $datosCausa=Causa::findOrFail($idCausa);
         $datosCausa->save();
-        return redirect()->route('Cliente.inactivos'); 
+        return redirect('Cliente/inactivo');
     }
 
     /**
@@ -106,7 +137,12 @@ class CausaController extends Controller
     {
         $file = $request->file('file');
         Excel::import(new CausaImport,request()->file('file'));
-        return back()->with('message','Importación de causas de inactividad completada');
+        return redirect()->route('Cliente.inactivos')->with('message','Importación de causas de inactividad completada');
+    }
+
+    public function exportarCausa() 
+    {
+        return Excel::download(new CausaExport, 'BD_Causas.xlsx');
     }
 
 } 

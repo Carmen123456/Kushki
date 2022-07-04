@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::table(table:'asignacion', callback: function (Blueprint $table) {
             $table->bigInteger('user_id')->unsigned()->nullable();
              $table->foreign('user_id')->references('id')->on('users');
+             $table->timestamps();
              $table->foreign('cliente_id')->references('idCliente')->on('clientes');
         
          });

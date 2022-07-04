@@ -1,31 +1,23 @@
-@extends('layouts.app', [
-    'class' => '',
-    'elementActive' => 'macros'
-])
 
- 
-@section('content')
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<form action="{{url('/MacrosIntercom/'.$datosIntercom->idMacroIntercom)}}" method="post">
-@csrf
-{{method_field('PATCH')}}
+
     
+    <form id="miFormEditar" action="{{ url('/MacrosIntercom/' .  $MacrosIntercom->idMacroIntercom) }}" method="post">
+        @csrf
+        {{ method_field('PATCH') }}
 
-<br>
-<label for="">Mensaje</label>
-<input class="form-control"  type="textarea" name="mensaje" value="{{$datosIntercom->mensaje}}">
-<br>
-<br>
-<label for="">Categoria</label>
-<input  class="form-control"  type="text" name="categoria" id="categoria" value="{{$datosIntercom->categoria}}">
-<br>
-<br>
-<input type="submit" value="Guardar datos">
 
-</form>
-        @endsection
+        <br>
+        <label for="">Mensaje</label>
+      
+        <textarea size=40 style="height:300px;" class="form-control" type="text" name="mensaje">{{ $MacrosIntercom->mensaje }}</textarea>
+        <br>
+        <br>
+        <label for="">Categoria</label>
+        <input class="form-control" type="text" name="categoria" id="categoria" value="{{$MacrosIntercom->categoria }}">
+        <br>
+        <br>
+        <input type="submit" value="Guardar datos">
+
+    </form>
+
+

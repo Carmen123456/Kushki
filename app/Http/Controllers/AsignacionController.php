@@ -5,25 +5,31 @@ use App\Models\Asignacion;
 use Illuminate\Http\Request;
 use App\Models\Cliente;
 use App\Models\User;
+use App\Exports\AsignacionExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
 class AsignacionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    public function __construct(){
+        $this->middleware('can:Editar asignacion')->only('edit','update');
+        $this->middleware('can:Registrar asignacion')->only('create', 'store');
+        $this->middleware('can:Borrar asignacion')->only('destroy');
+    }
     public function index()
     {
-        $datosAsignacion = Asignacion::all();
-
-        return view('Asignacion.listar' ,compact('datosAsignacion'));
+        $datosAsignacion =DB::select('select * from Clientes inner join Asignacion on Clientes.idCliente=Asignacion.Cliente_id 
+        inner join users on users.id = Asignacion.user_id where users.estadoUsuario = true 
+         group by idAsignacion');
+        $usuarios = User::where('estadoUsuario','=',true)->get();
+        $Clientes = Cliente::where('categria','=','Enterprise')->get();
+   
+        return view('Asignacion.listar',compact('datosAsignacion','usuarios', 'Clientes'));
     }
 
     public function miAsignado()
     {   
        
         $datosAsignacion = Asignacion::where('user_id', auth()->id())->get();
-
         return view('Asignacion.misAsignados',compact('datosAsignacion'));
         
     }   
@@ -34,8 +40,8 @@ class AsignacionController extends Controller
      */
     public function create()
     {
-        $usuarios = User::where('idTipoUsuarioFK','=','1')->get();
-        $Clientes = Cliente::where('categria','=','Enterprise')->get();
+        $usuarios = User::where('estadoUsuario','=',false)->get();
+        $Clientes = Cliente::where('state','=',true)->get();
         return view('Asignacion.registrar', compact('usuarios', 'Clientes'));
     }
 
@@ -55,7 +61,7 @@ class AsignacionController extends Controller
        // $datosAsignacion->user_id = auth()->id();
 
         $datosAsignacion->save();
-        return redirect('Asignacion');
+        return redirect('Asignacion')->with('mensaje','Se asignó correctamente');
     }
 
     public function show($idAsignacion)
@@ -80,10 +86,10 @@ class AsignacionController extends Controller
      */
     public function edit($idAsignacion)
     {
-        $usuarios = User::where('idTipoUsuarioFK','=','1')->get();
+        $usuarios = User::all();
         $Clientes = Cliente::where('categria','=','Enterprise')->get();
         $datosAsignacion= Asignacion::findOrFail($idAsignacion);
-        return view('Asignacion.editar',compact('usuarios', 'Clientes','datosAsignacion'));
+        return view('Asignacion.editar',compact('usuarios', 'Clientes','datosAsignacion'))->with('mensaje','Se asignó correctamente');
     }
 
     /**
@@ -137,5 +143,10 @@ class AsignacionController extends Controller
       }            
       $Categoria->save(); 
       return redirect('Asignacion');
+        }
+
+        public function exportar() 
+        {
+            return Excel::download(new AsignacionExport, 'BD_Asignaciones.xlsx');
         }
 }

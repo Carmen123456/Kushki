@@ -2,29 +2,33 @@
 
 namespace App\Http\Controllers;
 use App\Models\macrosZendesk;
-use App\Models\Causa;
 use Illuminate\Http\Request;
-
+use App\Exports\macrosZendeskExport;
+use App\Exports\macrosZendeskB2CExport;
+use Maatwebsite\Excel\Facades\Excel;
 class MacrosZendeskController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    public function __construct(){
+        $this->middleware('can:Editar mis macros')->only('edit','update');
+        $this->middleware('can:Editar mis macros')->only('edit','update');
+        $this->middleware('can:Crear mis macros')->only('store, create');
+        $this->middleware('can:Eliminar mis macros')->only('destroy');
+      
+    }
+    
     public function index()
     {
-  
-    $datosZendesk = macrosZendesk::all()->where('grupo','=',true);
+        $datosZendesk = macrosZendesk::all()->where('grupo','=',true);
 
-    return view('macros.zendesk.listar',compact('datosZendesk'));
+        return view('macros.zendesk.listar',compact('datosZendesk'));
     }
+
     public function misMacros()
     {   
        
         $datosZendesk = macrosZendesk::where('user_id', auth()->id())->get();
-
-        return view('macros.zendesk.listar',compact('datosZendesk'));
+       
+            return view('macros.zendesk.misMacros',compact('datosZendesk'));
         
     }   
     
@@ -34,26 +38,15 @@ class MacrosZendeskController extends Controller
 
         return view('macros.zendesk.listarbtc',compact('datosZendesk'));
     }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    
     public function create()
     {
         return view('macros.zendesk.registrar'); 
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        $datosZendesk  = new MacrosZendesk;
+        $datosZendesk  = new macrosZendesk;
         $datosZendesk->respuesta = $request->input('respuesta');
         $datosZendesk ->nombrePlantilla = $request->input('nombrePlantilla');
         $datosZendesk->aplicativo = $request->input('aplicativo');
@@ -62,39 +55,21 @@ class MacrosZendeskController extends Controller
         $datosZendesk->user_id = auth()->id();
 
         $datosZendesk->save();
-        return redirect('MacrosZendesk');
+        return redirect('MacrosZendesk/Mismacros');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\MacrosZendesk  $MacrosZendesk
-     * @return \Illuminate\Http\Response
-     */
     public function show(MacrosZendesk $macrosZendesk)
     {
         //
     }
+    
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\MacrosZendesk  $MacrosZendesk
-     * @return \Illuminate\Http\Response
-     */
     public function edit($idMacroZendesk)
     {
         $datosZendesk=macrosZendesk::findOrFail($idMacroZendesk);
         return view('macros.zendesk.editar', compact('datosZendesk'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\MacrosZendesk  $MacrosZendesk
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request,$idMacroZendesk)
     {
         $datosZendesk = macrosZendesk::find($idMacroZendesk);
@@ -105,35 +80,40 @@ class MacrosZendeskController extends Controller
         $datosZendesk->user_id = auth()->id();
 
         $datosZendesk->save();
-        return redirect('MacrosZendesk');
+        return redirect('MacrosZendesk/Mismacros');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\MacrosZendesk  $MacrosZendesk
-     * @return \Illuminate\Http\Response
-     */
+  
     public function destroy($idMacroZendesk)
     {
         macrosZendesk::destroy($idMacroZendesk);
-        return redirect('MacrosZendesk');
+        return redirect('MacrosZendesk/Mismacros');
     }
 
     public function cambiar($idMacroZendesk)
     {
-        //seleccionar la macro con id
+        //seleccionar la macron con el  id
         $Macros = macrosZendesk::find($idMacroZendesk);
         switch($Macros->grupo){
                 case true:// pasar a grupo b2c
-                    $Macros->grupo =false;
-            
+                    $Macros->grupo =false;            
                     break;
-                    case false: // pasar a grupo b2b
-                        $Macros->grupo =true;
+                    case false: //pasar a grupo b2b
+                        $Macros->grupo= true;
                         break;
       }            
       $Macros->save(); 
-      return redirect('MacrosZendesk');
+      return redirect('MacrosZendesk/Mismacros');
         }
+
+        public function exportar() 
+        {
+            return Excel::download(new macrosZendeskExport, 'BD_Macros_Zendesk_B2B.xlsx');
+        }
+
+        public function exportarB2C() 
+        {
+            return Excel::download(new macrosZendeskB2CExport, 'BD_Macros_Zendesk_B2C.xlsx');
+        }
+
 }
